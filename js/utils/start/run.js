@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 const path = require('path');
+const rosnodejs = require('rosnodejs');
 
 (function (definition) {
 
@@ -39,8 +40,8 @@ const path = require('path');
     	var catalog = $ROS.parameters['/catalog'].value;
    	 	if (catalog === undefined){
    	    	$CA.log.error('Missing DB parameters, exiting...');
-   	    	$CA.catalog.stop();
-   	 	}
+   	    	rosnodejs.shutdown();
+ 	}
    	 	
    	 	// creating express and http server
         $CA.express_instance = express();
