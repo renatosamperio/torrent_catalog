@@ -1,0 +1,5 @@
+catalog:
+  port: 3000
+  public_path: /opt/data/www
+
+

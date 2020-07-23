@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>torrent_catalog</name>
+  <version>0.1.0</version>
+  <description>The torrent_catalog package</description>
+
+  <maintainer email="maintainer@todo.todo">renato</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>std_msgs</depend>
+
+  <export>
+  </export>
+</package>
