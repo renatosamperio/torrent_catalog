@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+	<script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+	<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
+	
+	<link href="style.css" rel="stylesheet">
+	
+	<title>Download torrents</title>
+	
+	<style>
+		.card {
+		  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+		  transition: 0.3s;
+		  width: 40%;
+		  border-radius: 5px;
+		}
+		
+		.card:hover {
+		  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+		}
+		
+		img {
+		  border-radius: 5px 5px 0 0;
+		  width: 100%
+		}
+		
+		.container {
+		  padding: 2px 16px;
+		}
+	</style>
+</head>
+<body>
+
+<h2>Latest torrents</h2>
+
+<!-- Container Fluid -->
+<div class="container-fluid">
+
+	<!--Card column-->
+	<div class="card-columns" id="accordionEx" role="tablist" aria-multiselectable="true">
+	  
+	<!-- Data collection -->
+	<%
+	for (var i=0; i<latest.length; i++){
+	    console.log("------------------------");
+		console.log(latest[i]);
+		var genres    = '';
+		var plot      = '';
+		var image_url = '';
+		var torrent   = latest[i];
+		var title     = torrent['title'];
+		var magnet    = torrent['magnet'];
+		var file      = torrent['file'];
+		var views     = torrent['views'];
+		var leechers  = torrent['leechers'];
+		var seeders   = torrent['seeders'];
+		var size      = torrent['size'];
+		var imdb_url  = 'http://imdb.com/title/'+torrent['imdb_code'];
+		var torrent_title = title;
+		if ('imdb' in torrent){
+			var imdb = torrent['imdb'];
+			title    = imdb['title'];
+			
+			if ('image' in imdb){
+				image_url = imdb['image']['url'];
+			}
+			
+			if ('genres' in imdb){
+			    genres = imdb['genres'];
+			    genres = genres.join(", ");
+			}
+			if ('plot' in imdb){
+			    plot = imdb['plot'];
+			}
+		}
+	%>
+	    <!-- Card Wider -->
+		<div class="card card-cascade wider reverse bg-light mb-3" style="max-width: 22rem;">
+    	
+			<!-- Card header: Title -->
+			<div class="card-header" role="tab" id="headingOne1">
+				<a data-toggle="collapse" data-parent="#accordionEx" href="#collapseOne<%= i+1 %>" aria-expanded="true" aria-controls="collapseOne<%= i+1 %>">
+					<h5 class="mb-1"><%= title %></h5>
+				</a>
+			</div>
+
+	    
+			<!-- Card body-->
+			<div class="card-body card-body-cascade text-center" >
+				<!-- Card image -->
+				<div class="view view-cascade overlay">
+					<img src="<%= image_url %> alt="Card image cap"" >
+					<a>
+			      		<div class="mask rgba-white-slight"></div>
+			    	</a>
+	
+					<!-- Nav tabs -->
+					<ul class="nav nav-tabs nav-justified">
+					  <li class="nav-item">
+					    <a class="nav-link active" data-toggle="tab" href="#E01">E01</a>
+					  </li>
+					  <li class="nav-item">
+					    <a class="nav-link" data-toggle="tab" href="#E02">E02</a>
+					  </li>
+					  <li class="nav-item">
+					    <a class="nav-link" data-toggle="tab" href="#E03">E03</a>
+					  </li>
+					</ul>
+					
+					<!-- Tab panes -->
+					<div class="tab-content">
+					  <div class="tab-pane container active" id="E01">
+					  
+					  	<!-- Card content: Name -->
+					    <p class="card-title"> <%= torrent_title %> </p>
+					    
+					    <!-- Card content: Genres -->
+					    <p class="card-text"> <%= genres %></p> 
+					    <p> 
+				    		<font color="green"><b> <%= seeders %> </b></font>/
+				    		<font color="red">  <b> <%= leechers %> </b></font>
+					    </p>
+						
+					    <!-- Card content: Torrent info -->
+					    <p> 
+					    	<span class="badge badge-secondary" style="border-radius:4px;" title="views">
+					    		<font ><b><%= views %></b></font>
+					    	</span>
+					    	<span class="badge badge-secondary" style="border-radius:4px;" title="size">
+					    		<font ><b><%= size %></b></font>
+					    	</span>
+					    </p>
+					  </div>
+					  <div class="tab-pane container fade" id="E02">
+					  
+					  	Not ready ... EO2
+					  
+					  </div>
+					  <div class="tab-pane container fade" id="E03">
+					  	<!-- Card content: Name -->
+					  
+					  	Episode EO3
+					  
+					  </div>
+					</div>
+					
+		
+        		</div>
+			</div>
+			
+			<!-- Card footer -->
+			<div class="card-footer text-muted">
+				<div class="rounded-bottom mdb-color lighten-3 text-center pt-3">
+				    <ul class="list-unstyled list-inline font-small">
+				      <li class="list-inline-item pr-2">
+				      	<a class="px-2 fa-lg li-ic" href="<%= magnet %>"><span class="glyphicon glyphicon-magnet"></span></a>
+				      </li>
+				      <li class="list-inline-item pr-2">
+				      	<a class="px-2 fa-lg li-ic" href="<%= file %>"><span class="glyphicon glyphicon-floppy-save"></span></a>
+				      </li>
+				      <li class="list-inline-item pr-2">
+				        <a class="px-2 fa-lg li-ic" href="download"><i class="glyphicon glyphicon-cloud-download"></i></a>
+				      </li>
+				      <li class="list-inline-item pr-2">
+				      	<a class="px-2 fa-lg li-ic" href="<%= imdb_url %>"> <i class="fab fa-imdb"></i></a>
+			      	  </li>
+				    </ul>
+				</div>
+			</div>
+			
+	    </div>
+	    <!-- Card Wider -->
+	<%
+	}
+	%>
+	</div>
+	<!--Card column-->
+	
+</div>
+<!-- Container Fluid -->
+
+</body>
+</html> 
