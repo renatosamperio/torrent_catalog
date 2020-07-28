@@ -29,6 +29,6 @@ module.exports = function ($CA, $ROS) {
     };
 
     // HC.log <= ROS.log
-    $CA.log = $ROS.log;
+    $CA.log = $ROS.nodejs.log;   
 
 };

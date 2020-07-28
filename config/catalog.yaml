@@ -1,5 +1,7 @@
 catalog:
   port: 3000
   public_path: /opt/data/www
-
+  database:
+    url: 'mongodb://localhost:27017/'
+    dbs: galaxy
 

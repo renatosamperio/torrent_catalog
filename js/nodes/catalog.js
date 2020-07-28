@@ -10,9 +10,10 @@ let catalog = {};
 
 var $CA = {
 
-    'args': {},
-    'express_instance': false,
-    'server_instance': false,
+	    'args': {},
+	    'log': {},
+	    'express_instance': false,
+	    'server_instance': false,
 
 };
 
@@ -29,6 +30,8 @@ catalog.start = function startCatalog(callback) {
     // Include util functions.
     $ROS.nodejs.log.info('Require util functions...');
     $CA = _.merge($CA, require('./../utils/start/run'));
+    $CA = _.merge($CA, require('./../services/torrents'));
+    $CA = _.merge($CA, require('./../utils/misc'));
     
     // Load ROS setup files.
     $ROS.nodejs.log.info('Load ROS setup files...');
@@ -57,9 +60,11 @@ catalog.start = function startCatalog(callback) {
 
                 // Start everything else: the web-socket, the inference-socket, etc.
                 $ROS.nodejs.log.info('Starting Express.js web server with socket.io...');
-                $CA.start.run.all($CA, $ROS);
+                $CA.start.run.all($CA, $ROS, $DB);
                 $ROS.nodejs.log.info('Honeycomb started.');
 
+                // Starting services
+                $CA.torrents.start($CA, $ROS, $DB);
                 return callback($CA, $ROS);
             }
     );
@@ -69,6 +74,9 @@ catalog.stop = function startCatalog(callback) {
 
     // Close Express.js.
     $CA.server_instance.close();
+    
+    // Stopping mongo connections
+    $CA.stop.run.mongo();
 
     return callback();
 
