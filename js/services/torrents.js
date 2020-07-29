@@ -70,8 +70,6 @@
 			]
     	};
     	
-//    	query = {'galaxy_id' : 14073129};
-    	
     	// Looking into latest torrents with an aggregation
 		$CA.log.debug('Aggretating torrents and imdb');
     	var pipeline = [

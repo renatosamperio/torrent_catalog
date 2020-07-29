@@ -49,8 +49,7 @@
 	<!-- Data collection -->
 	<%
 	for (var i=0; i<latest.length; i++){
-	    console.log("------------------------");
-		console.log(latest[i]);
+
 		var genres    = '';
 		var plot      = '';
 		var image_url = '';
@@ -63,24 +62,34 @@
 		var seeders   = torrent['seeders'];
 		var size      = torrent['size'];
 		var imdb_url  = 'http://imdb.com/title/'+torrent['imdb_code'];
-		var torrent_title = title;
-		if ('imdb' in torrent){
-			var imdb = torrent['imdb'];
-			title    = imdb['title'];
+		var t_title   = title;
+		
+		var torrent_keys = Object.keys(torrent); 
+		if ( torrent_keys.includes('imdb') ){
+			var imdb      = torrent['imdb'];
+		    var imdb_keys = Object.keys(imdb); 
+			title         = imdb['title'];
 			
-			if ('image' in imdb){
+			if ( imdb_keys.includes('image') && imdb['image'] != undefined) {
 				image_url = imdb['image']['url'];
 			}
+			/*
+			else{
+				console.log("Image not found in torrent ["+torrent['galaxy_id']+"]");
+			}
+			*/
 			
-			if ('genres' in imdb){
+			if ( imdb_keys.includes('genres') ) {
 			    genres = imdb['genres'];
 			    genres = genres.join(", ");
 			}
-			if ('plot' in imdb){
+			
+			if ( imdb_keys.includes('plot') ) {
 			    plot = imdb['plot'];
 			}
 		}
-	%>
+	%> 	
+	
 	    <!-- Card Wider -->
 		<div class="card card-cascade wider reverse bg-light mb-3" style="max-width: 22rem;">
     	
@@ -119,7 +128,7 @@
 					  <div class="tab-pane container active" id="E01">
 					  
 					  	<!-- Card content: Name -->
-					    <p class="card-title"> <%= torrent_title %> </p>
+					    <p class="card-title"> <%= t_title %> </p>
 					    
 					    <!-- Card content: Genres -->
 					    <p class="card-text"> <%= genres %></p> 
