@@ -1,17 +1,22 @@
+.card-columns {
+  @include media-breakpoint-only(lg) {
+    column-count: 4;
+  }
+  @include media-breakpoint-only(xl) {
+    column-count: 5;
+  }
+}
 
 .card {
   box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
   transition: 0.3s;
-  width: 40%;
+  width: 100%;
   border-radius: 5px;
-}
-
-.card:hover {
-  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
 }
 
 img {
   border-radius: 5px 5px 0 0;
+  width: 100%
 }
 
 .container {
@@ -22,14 +27,6 @@ img {
   transition: .3s transform ease-in-out;
 }
 
-.card-columns {
-  @include media-breakpoint-only(lg) {
-    column-count: 4;
-  }
-  @include media-breakpoint-only(xl) {
-    column-count: 5;
-  }
-}
 .nav-tabs > li.active > a {
   color: #3c5a78;
   font-size: 16px;
@@ -37,3 +34,40 @@ img {
 .nav-tabs > li > a {
   color: #575757;
 }}
+
+/* Small (sm) devices (landscape phones, 576px and up) */
+@media (min-width: 576px) { 
+	.card {
+		width: 30%;
+	}
+	.card-columns {
+		column-count: 2;
+	}
+}
+
+/* Medium (md) devices (tablets, 768px and up)*/
+@media (min-width: 768px) {
+	.card {
+	  width: 60%;
+	}
+	.card-columns {
+		column-count: 3;
+	}
+}
+
+/* Large (lg) devices (desktops, 992px and up)*/
+@media (min-width: 992px) {
+	.card {
+	  width: 80%;
+	}
+	.card-columns {
+		column-count: 4;
+	}
+}
+
+/* Extra (xl) large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+	.card-columns {
+		column-count: 5;
+	}
+}
