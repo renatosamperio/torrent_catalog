@@ -50,48 +50,35 @@
     module.torrents.latest = function (req, res) {
     	 
     	var latest_torrents = [];
-        var name   = 'torrents';
 
 		$CA.log.debug('Setting up connection client');
     	var client = $DB.mongo.connection.client;
-		var db = client.db('galaxy');
-		var torrents = client.db(name);
 
+        let name       = 'latest';
+        let db_name    = 'galaxy';
+        let hrs_back   = 12;
+        let db         = client.db(db_name);
+        let collection = db.collection(name);
+        
     	// Setting up time of latest torrents
-    	var date_latest = new Date();
-    	date_latest.setHours(date_latest.getHours() - 6);
-    	var query = 
-    	{ 
-			'$and': 
-			[
-				{'imdb_code':       { '$exists': true}}, 
-				{'torrent_updated': { '$exists': true}}, 
-				{'torrent_updated': { '$gte':    date_latest}} 
-			]
-    	};
-    	
-    	// Looking into latest torrents with an aggregation
-		$CA.log.debug('Aggretating torrents and imdb');
-    	var pipeline = [
-		    {'$match' : query},
-		    {'$lookup': {
-		        'from':         "imdb",
-		        'localField':   "imdb_code",
-		        'foreignField': "imdb_id",
-		        'as':           "imdb"}},
-		    {'$unwind' : "$imdb"},
-		];
-    	
-    	// Collecting torrents and rendering
-    	var aggCursor = db.collection(name).aggregate(pipeline);
-		aggCursor.forEach(items => {
-			latest_torrents.push(items);
-		}).then(function(imdb_info) {
-			$CA.log.debug('Rendering latest ['+latest_torrents.length+'] torrents');
-	        var latest = { 'latest': latest_torrents };
-			res.render('latest', latest);
-    	});
-		
+        let date_latest = new Date();
+    	date_latest.setHours(date_latest.getHours() - hrs_back);
+    	let query = {'last_updated' : { '$gte': date_latest }};
+
+    	// Searching items
+        collection.find(query).toArray( function(err, result) {
+          if (err) throw err;
+          $CA.log.debug('Got ['+result.length+'] latest torrents');
+          var latest_torrents = [];
+          for (let i=0; i<result.length; i++){
+        	  var item = result[i];
+        	  latest_torrents.push(item);
+//        	  console.log(item);
+          }
+          var latest = { 'latest': latest_torrents };
+          $CA.log.debug('Rendering latest ['+latest_torrents.length+'] torrents');
+          res.render('latest', latest);
+        });
         return;
     	
     }

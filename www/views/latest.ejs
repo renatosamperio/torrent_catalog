@@ -15,24 +15,14 @@
 	<title>Download torrents</title>
 	
 	<style>
-		.card {
-		  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-		  transition: 0.3s;
-		  width: 40%;
-		  border-radius: 5px;
+		.card-deck .cw-30 {
+		    flex: 1 0 30%;
+		    max-width: 30%;
 		}
 		
-		.card:hover {
-		  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
-		}
-		
-		img {
-		  border-radius: 5px 5px 0 0;
-		  width: 100%
-		}
-		
-		.container {
-		  padding: 2px 16px;
+		.card-deck .cw-70 {
+		    flex: 1 0 70%;
+		    max-width: 70%;
 		}
 	</style>
 </head>
@@ -47,39 +37,26 @@
 	<div class="card-columns" id="accordionEx" role="tablist" aria-multiselectable="true">
 	  
 	<!-- Data collection -->
-	<%
+<%
 	for (var i=0; i<latest.length; i++){
 
-		var genres    = '';
-		var plot      = '';
-		var image_url = '';
-		var torrent   = latest[i];
-		var title     = torrent['title'];
-		var magnet    = torrent['magnet'];
-		var file      = torrent['file'];
-		var views     = torrent['views'];
-		var leechers  = torrent['leechers'];
-		var seeders   = torrent['seeders'];
-		var size      = torrent['size'];
-		var imdb_url  = 'http://imdb.com/title/'+torrent['imdb_code'];
-		var t_title   = title;
-		
-		var torrent_keys = Object.keys(torrent); 
-		if ( torrent_keys.includes('imdb') ){
-			var imdb      = torrent['imdb'];
-		    var imdb_keys = Object.keys(imdb); 
-			title         = imdb['title'];
+		var title       = '';
+		var image_url   = 'img/missing_image.png';
+		var latest_item = latest[i];
+		var item_keys   = Object.keys(latest_item); 
+		if ( item_keys.includes('imdb') ){
+			var imdb      = latest_item['imdb'];
+			var imdb_keys = Object.keys(imdb); 
+			
+			if ( imdb_keys.includes('title') ) {
+				title = imdb['title'];
+			}
 			
 			if ( imdb_keys.includes('image') && imdb['image'] != undefined) {
 				image_url = imdb['image']['url'];
 			}
-			/*
-			else{
-				console.log("Image not found in torrent ["+torrent['galaxy_id']+"]");
-			}
-			*/
-			
-			if ( imdb_keys.includes('genres') ) {
+
+			if ( imdb_keys.includes('genres') && imdb['genres'] != undefined) {
 			    genres = imdb['genres'];
 			    genres = genres.join(", ");
 			}
@@ -88,7 +65,7 @@
 			    plot = imdb['plot'];
 			}
 		}
-	%> 	
+%>
 	
 	    <!-- Card Wider -->
 		<div class="card card-cascade wider reverse bg-light mb-3" style="max-width: 22rem;">
@@ -99,42 +76,106 @@
 					<h5 class="mb-1"><%= title %></h5>
 				</a>
 			</div>
-
-	    
+	
 			<!-- Card body-->
 			<div class="card-body card-body-cascade text-center" >
 				<!-- Card image -->
 				<div class="view view-cascade overlay">
-					<img src="<%= image_url %> alt="Card image cap"" >
+					<img src="<%= image_url %>" alt="Card image cap"" >
 					<a>
 			      		<div class="mask rgba-white-slight"></div>
 			    	</a>
-	
-					<!-- Nav tabs -->
+			    	
+			</div>
+			
+					<!-- Nav tabs justify-content-end -->
 					<ul class="nav nav-tabs nav-justified">
-					  <li class="nav-item">
-					    <a class="nav-link active" data-toggle="tab" href="#E01">E01</a>
-					  </li>
-					  <li class="nav-item">
-					    <a class="nav-link" data-toggle="tab" href="#E02">E02</a>
-					  </li>
-					  <li class="nav-item">
-					    <a class="nav-link" data-toggle="tab" href="#E03">E03</a>
-					  </li>
-					</ul>
+<%
+		if ( item_keys.includes('torrents') ){
+			var torrents = latest_item['torrents'];
+			var is_active = ' active';
+			for (let j=0; j<torrents.length; j++){
+				var info = torrents[j];
+				var indexer  = '';
+			
+				// Getting specific torrent information
+				var info_keys      = Object.keys(info);
+				if ( info_keys.includes('torrent_info') ){
+					var t_info     = info['torrent_info'];
+					var t_info_keys= Object.keys(t_info);
+					t_title        = t_info['title'];
+					var has_season = t_info_keys.includes('season');
+					var has_episode= t_info_keys.includes('episode');
 					
-					<!-- Tab panes -->
+					// Either it includes date or season/episode
+					if (t_info_keys.includes('date') ){
+						indexer = t_info['date'];
+					}
+					else if (has_season || has_episode){
+						if (has_season){
+							indexer = 'S'+t_info['season'];
+						}
+						if (has_episode){
+							indexer += 'E'+t_info['episode'];
+						}
+					}
+					// there is nothing to reference the torrent!
+					else{
+						indexer  = 'T0'+(j+1);
+					}
+				}
+				// there is nothing to reference the torrent!
+				else{
+					indexer  = 'T0'+(j+1);
+				}
+				
+				// Setting first as actie
+				if (j > 0)
+					is_active = '';
+%> 	
+					  <li class="nav-item">
+					    <a class="nav-link<%= is_active %>" data-toggle="tab" href="#ID<%= i %>_E0<%= j %>"> <%= indexer %></a>
+					  </li>
+<%
+			}
+		}
+%> 
+					</ul>
+					<!-- END Nav tabs -->
+					
+					<!-- Tab content -->
 					<div class="tab-content">
-					  <div class="tab-pane container active" id="E01">
-					  
-					  	<!-- Card content: Name -->
+<%
+			// Assigning data to each navigatino bar
+			var is_act = ' active';
+			for (let k=0; k<torrents.length; k++){
+				var info = torrents[k]
+				var seeders  = info['seeders'];
+				var leechers = info['leechers'];
+				var views    = info['views'];
+				var size     = info['size'];
+				var t_title  = info['title'];
+				var magnet   = info['magnet'];
+				var file     = info['file'];
+				var download = info['download'];
+				var galaxy_id= info['galaxy_id'];				
+				var imdb_url = 'http://imdb.com/title/'; //+info['url'];
+
+				// console.dir(info);
+				// console.log("--------------------------------------------------");
+				if (k > 0) is_act = '';
+				
+				
+%> 
+
+					  <div class="tab-pane container<%= is_act %>" id="ID<%= i %>_E0<%= k %>">
+					    <!-- Card content: Name -->
 					    <p class="card-title"> <%= t_title %> </p>
 					    
 					    <!-- Card content: Genres -->
 					    <p class="card-text"> <%= genres %></p> 
 					    <p> 
-				    		<font color="green"><b> <%= seeders %> </b></font>/
-				    		<font color="red">  <b> <%= leechers %> </b></font>
+				    		<font color="green"><b> <%= seeders %> </b></font>/<font color="red">  <b> <%= leechers %> </b></font>
 					    </p>
 						
 					    <!-- Card content: Torrent info -->
@@ -146,49 +187,39 @@
 					    		<font ><b><%= size %></b></font>
 					    	</span>
 					    </p>
+					    <hr>
+					    
+						<div class="rounded-bottom mdb-color lighten-3 text-center pt-3">
+						    <ul class="list-unstyled list-inline font-small">
+						      <li class="list-inline-item pr-2">
+						      	<a class="px-2 fa-lg li-ic" href="<%= magnet %>"><span class="glyphicon glyphicon-magnet"></span></a>
+						      </li>
+						      <li class="list-inline-item pr-2">
+						      	<a class="px-2 fa-lg li-ic" href="<%= file %>"><span class="glyphicon glyphicon-floppy-save"></span></a>
+						      </li>
+						      <li class="list-inline-item pr-2">
+						        <a class="px-2 fa-lg li-ic" href="download"><i class="glyphicon glyphicon-cloud-download"></i></a>
+						      </li>
+						      <li class="list-inline-item pr-2">
+						      	<a class="px-2 fa-lg li-ic" href="<%= imdb_url %>"> <i class="fab fa-imdb"></i></a>
+					      	  </li>
+						    </ul>
+						</div>
 					  </div>
-					  <div class="tab-pane container fade" id="E02">
-					  
-					  	Not ready ... EO2
-					  
-					  </div>
-					  <div class="tab-pane container fade" id="E03">
-					  	<!-- Card content: Name -->
-					  
-					  	Episode EO3
-					  
-					  </div>
+<%
+			}
+%> 
+
 					</div>
-					
 		
         		</div>
-			</div>
-			
-			<!-- Card footer -->
-			<div class="card-footer text-muted">
-				<div class="rounded-bottom mdb-color lighten-3 text-center pt-3">
-				    <ul class="list-unstyled list-inline font-small">
-				      <li class="list-inline-item pr-2">
-				      	<a class="px-2 fa-lg li-ic" href="<%= magnet %>"><span class="glyphicon glyphicon-magnet"></span></a>
-				      </li>
-				      <li class="list-inline-item pr-2">
-				      	<a class="px-2 fa-lg li-ic" href="<%= file %>"><span class="glyphicon glyphicon-floppy-save"></span></a>
-				      </li>
-				      <li class="list-inline-item pr-2">
-				        <a class="px-2 fa-lg li-ic" href="download"><i class="glyphicon glyphicon-cloud-download"></i></a>
-				      </li>
-				      <li class="list-inline-item pr-2">
-				      	<a class="px-2 fa-lg li-ic" href="<%= imdb_url %>"> <i class="fab fa-imdb"></i></a>
-			      	  </li>
-				    </ul>
-				</div>
-			</div>
-			
+				<!-- END Tab content -->
+
 	    </div>
 	    <!-- Card Wider -->
-	<%
+<%
 	}
-	%>
+%>
 	</div>
 	<!--Card column-->
 	
