@@ -38,7 +38,7 @@
 	  
 	<!-- Data collection -->
 <%
-	for (var i=0; i<latest.length; i++){
+	for (let i=0; i<latest.length; i++){
 
 		var title       = '';
 		var image_url   = 'img/missing_image.png';
@@ -56,11 +56,6 @@
 				image_url = imdb['image']['url'];
 			}
 
-			if ( imdb_keys.includes('genres') && imdb['genres'] != undefined) {
-			    genres = imdb['genres'];
-			    genres = genres.join(", ");
-			}
-			
 			if ( imdb_keys.includes('plot') ) {
 			    plot = imdb['plot'];
 			}
@@ -163,19 +158,42 @@
 
 				// console.dir(info);
 				// console.log("--------------------------------------------------");
-				if (k > 0) is_act = '';
-				
-				
+				if (k > 0) is_act = '';				
 %> 
 
 					  <div class="tab-pane container<%= is_act %>" id="ID<%= i %>_E0<%= k %>">
 					    <!-- Card content: Name -->
 					    <p class="card-title"> <%= t_title %> </p>
-					    
+					    				
 					    <!-- Card content: Genres -->
-					    <p class="card-text"> <%= genres %></p> 
+					    <p class="card-text"> 
+
+<%
+				
+				if ( imdb_keys.includes('genres') && imdb['genres'] != undefined) {
+				
+			    	genres = imdb['genres'];
+					for (let m=0; m<genres.length; m++){
+%> 
+						
+					    	<span class="badge badge-info" style="border-radius:4px;" title="size">
+					    		<font ><b><%= genres[m] %></b></font>
+					    	</span>
+<%
+					}
+				}
+%>
+						</p>
+						<!-- END Card content: Genres -->
+						
 					    <p> 
-				    		<font color="green"><b> <%= seeders %> </b></font>/<font color="red">  <b> <%= leechers %> </b></font>
+					    	<span class="badge badge-success" style="border-radius:4px;" title="size">
+					    		<font ><b><%= seeders %></b></font>
+					    	</span>
+					    	/
+					    	<span class="badge badge-danger" style="border-radius:4px;" title="size">
+					    		<font ><b><%= leechers %></b></font>
+					    	</span>
 					    </p>
 						
 					    <!-- Card content: Torrent info -->
