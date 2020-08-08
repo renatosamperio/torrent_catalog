@@ -164,6 +164,45 @@ class TorrentParser:
         except Exception as inst:
               ros_node.ParseException(inst)
 
+    def search_extra_imdb(self, torrent, title):
+        try:
+        
+            ## looking for title in an alternative IMDB API
+            imdb_titles = self.ia.search_movie_advanced(title)
+            
+            ## check if we found something informaiton
+            has_imdb = False
+            for item in imdb_titles:
+                imdb_title = item.data['title']
+                imdb_code  = 'tt'+item.movieID
+                
+                ## scoring collected data and assign perfect match
+                score = self.comparator.score(title, imdb_title)
+                if score == 1:
+                    rospy.logdebug ("Searching for imdb [%s]"%imdb_code)
+                    dict_row = self.imdb_handler.get_info(imdb_code)
+                    dict_row['last_updated'] = datetime.now()
+                    
+                    ## double check if something went wrong while updating DB
+                    exists = self.imdb_db.Find({'imdb_id' : imdb_code})
+                    if exists.count()<1:
+                        result = self.imdb_db.Insert(dict_row)
+                        if not result: rospy.logwarn('Invalid DB update for [%s]'%imdb_code)
+                        else: rospy.loginfo("Inserted in imdb DB [%s]"%imdb_code)
+                    else: 
+                        rospy.logdebug("Item [%s] already exists in imdb DB"%imdb_code)
+                    
+                    torrent['imdb_code'] = imdb_code
+                    has_imdb = True
+                    break
+                elif score > 0.98:
+                    rospy.log('[%s] High similarity: [%s]'%(imdb_code, imdb_title))
+                else:
+                    rospy.log('[%s] Low similarity:  [%s]'%(imdb_code, imdb_title))
+
+        except Exception as inst:
+              ros_node.ParseException(inst)
+
     def look_existing_data(self):
         logging.getLogger('imdbpy.parser.http').setLevel(logging.getLevelName('DEBUG'))
         try:
@@ -207,11 +246,11 @@ class TorrentParser:
                 title = title.replace('.', ' ').strip()
                 title = self.imdb_handler.clean_sentence(title, keywords).strip(' -')
                 
-                ## adding found keywords when title was clean
+                ## whenever there are keywords it means that they were
+                ## taken from the title and the title has changed too,
+                ## therefore we should update title in torrent info
                 if len(keywords)>0: 
-                    torrent_info.update({'keywords':keywords})
-                    if 'title' not in torrent_info:
-                        torrent_info['title'] = title
+                    torrent_info.update({'keywords':keywords, 'title': title})
                 
                 ## apply filters to get torrent info from title
                 rospy.logdebug('Parsing [%s]'%title)
@@ -220,73 +259,71 @@ class TorrentParser:
                     title = torrent_info['title']
                     rospy.logdebug('Using refreshed title [%s]'%title)
 
+            ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+            ## ##                         REMOVE THIS SECTION ??  
+            ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
                 ## do not update IMDB already existing torrents
                 ## otherwise update IMDB information
                 if title in looked_titles:
                     skipped_titles += 1
                     imdb_titles = []
                     rospy.logdebug('Item [%s - %s] has already been looked'%(galaxy_id, title))
-                else:
+                ## keeping track of looked items
+                else: looked_titles.append(title)
+            ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+                    
+                ## looking for title in an alternative IMDB API
+                imdb_titles = self.ia.search_movie_advanced(title)
                 
-                    ## looking only once per item
-                    looked_titles.append(title)
+                ## check if we found something informaiton
+                has_imdb = False
+                for item in imdb_titles:
+                    imdb_title = item.data['title']
+                    imdb_code  = 'tt'+item.movieID
                     
-                    ## looking for title in an alternative IMDB API
-                    imdb_titles = self.ia.search_movie_advanced(title)
-                    
-                    ## check if we found something informaiton
-                    has_imdb = False
-                    for item in imdb_titles:
-                        imdb_title = item.data['title']
-                        imdb_code  = 'tt'+item.movieID
+                    ## scoring collected data and assign perfect match
+                    score = self.comparator.score(title, imdb_title)
+                    if score == 1:
+                        rospy.logdebug ("Searching for imdb [%s]"%imdb_code)
+                        dict_row = self.imdb_handler.get_info(imdb_code)
+                        dict_row['last_updated'] = datetime.now()
                         
-                        ## scoring collected data and assign perfect match
-                        score = self.comparator.score(title, imdb_title)
-                        if score == 1:
-                            rospy.logdebug ("Searching for imdb [%s]"%imdb_code)
-                            dict_row = self.imdb_handler.get_info(imdb_code)
-                            dict_row['last_updated'] = datetime.now()
-                            
-                            ## double check if something went wrong while updating DB
-                            exists = self.imdb_db.Find({'imdb_id' : imdb_code})
-                            if exists.count()<1:
-                                result = self.imdb_db.Insert(dict_row)
-                                if not result: rospy.logwarn('Invalid DB update for [%s]'%imdb_code)
-                                else: rospy.loginfo("Inserted in imdb DB [%s]"%imdb_code)
-                            else: 
-                                rospy.logdebug("Item [%s] already exists in imdb DB"%imdb_code)
-                            
-                            torrent['imdb_code'] = imdb_code
-                            has_imdb = True
-                            break
-                        elif score > 0.98:
-                            print "[",score,"]===>",imdb_title, "\t",imdb_code
-                        else:
-                            print "[",score,"]--->",imdb_title, "\t",imdb_code
+                        ## double check if something went wrong while updating DB
+                        exists = self.imdb_db.Find({'imdb_id' : imdb_code})
+                        if exists.count()<1:
+                            result = self.imdb_db.Insert(dict_row)
+                            if not result: rospy.logwarn('Invalid DB update for [%s]'%imdb_code)
+                            else: rospy.loginfo("Inserted in imdb DB [%s]"%imdb_code)
+                        else: 
+                            rospy.logdebug("Item [%s] already exists in imdb DB"%imdb_code)
+                        
+                        torrent['imdb_code'] = imdb_code
+                        has_imdb = True
+                        break
+                    elif score > 0.98:
+                        rospy.loginfo('[%s] High similarity: [%s]'%(imdb_code, imdb_title))
+                    else:
+                        rospy.loginfo('[%s] Low similarity:  [%s]'%(imdb_code, imdb_title))
                             
                 
                 rospy.loginfo ("(%d/%d) Got [%d] items for imdb [%s]"%
                                 ((idx+1), total, len(imdb_titles), title))
+                
                 ## check if imdb info has been updated
-                update_db = False
                 if has_imdb and not imdb_updated:
                     torrent['imdb_updated'] = datetime.now()
-                    update_db = True
                     rospy.logdebug('[%s] has IMDB but it was not marked'%galaxy_id)
+
                 ## adding torrent information
                 if not torrent_info:
-                    rospy.logwarn('[%s] has invalid torrent information'%galaxy_id)
+                    torrent['torrent_info'] = {"title": title}
+                    rospy.loginfo('[%s] has invalid torrent information'%galaxy_id)
                 else: 
                     torrent['torrent_info'] = torrent_info
                     rospy.logdebug('[%s] has new torrent info'%galaxy_id)
-                    update_db = True
-                
-                ## updating state in DB if there is any change
-                if not update_db:
-                    rospy.loginfo('[%s] has not changed'%galaxy_id)
-                    continue
 
                 ## decide manually to update DB record
+                print '- - - - - torrent - - - - -'
                 pprint(torrent)
                 changes, summary = compare_dictionaries(
                     torrent, post, 
