@@ -39,15 +39,14 @@
 	<!-- Data collection -->
 <%
 	for (let i=0; i<latest.length; i++){
-
 		var title       = '';
 		var image_url   = 'img/missing_image.png';
 		var latest_item = latest[i];
 		var item_keys   = Object.keys(latest_item); 
-		if ( item_keys.includes('imdb') ){
+		
+		if ( item_keys.includes('imdb') && latest_item['imdb'] ){
 			var imdb      = latest_item['imdb'];
 			var imdb_keys = Object.keys(imdb); 
-			
 			if ( imdb_keys.includes('title') ) {
 				title = imdb['title'];
 			}
@@ -59,9 +58,9 @@
 			if ( imdb_keys.includes('plot') ) {
 			    plot = imdb['plot'];
 			}
-		}
+
 %>
-	
+
 	    <!-- Card Wider -->
 		<div class="card card-cascade wider reverse bg-light mb-3" style="max-width: 22rem;">
     	
@@ -81,153 +80,169 @@
 			      		<div class="mask rgba-white-slight"></div>
 			    	</a>
 			    	
-			</div>
+				</div>
 			
-					<!-- Nav tabs justify-content-end -->
-					<ul class="nav nav-tabs nav-justified">
+				<!-- Nav tabs justify-content-end -->
+				<ul class="nav nav-tabs nav-justified">
 <%
-		if ( item_keys.includes('torrents') ){
-			var torrents = latest_item['torrents'];
-			var is_active = ' active';
-			for (let j=0; j<torrents.length; j++){
-				var info = torrents[j];
-				var indexer  = '';
-			
-				// Getting specific torrent information
-				var info_keys      = Object.keys(info);
-				if ( info_keys.includes('torrent_info') ){
-					var t_info     = info['torrent_info'];
-					var t_info_keys= Object.keys(t_info);
-					t_title        = t_info['title'];
-					var has_season = t_info_keys.includes('season');
-					var has_episode= t_info_keys.includes('episode');
-					
-					// Either it includes date or season/episode
-					if (t_info_keys.includes('date') ){
-						indexer = t_info['date'];
-					}
-					else if (has_season || has_episode){
-						if (has_season){
-							indexer = 'S'+t_info['season'];
+
+			if ( item_keys.includes('torrents') ){
+				var torrents = latest_item['torrents'];
+				var is_active = ' active';
+				for (let j=0; j<torrents.length; j++){
+					var info = torrents[j];
+					var indexer  = '';
+				
+					// Getting specific torrent information
+					var info_keys      = Object.keys(info);
+					if ( info_keys.includes('torrent_info') ){
+						var t_info     = info['torrent_info'];
+						var t_info_keys= Object.keys(t_info);
+						var has_season = t_info_keys.includes('season');
+						var has_episode= t_info_keys.includes('episode');
+						
+						// Either it includes date or season/episode
+						if (t_info_keys.includes('date') ){
+							indexer = t_info['date'];
 						}
-						if (has_episode){
-							indexer += 'E'+t_info['episode'];
+						else if (has_season || has_episode){
+							if (has_season){
+								indexer = 'S'+t_info['season'];
+							}
+							if (has_episode){
+								indexer += 'E'+t_info['episode'];
+							}
+						}
+						// there is nothing to reference the torrent!
+						else{
+							indexer  = 'T0'+(j+1);
 						}
 					}
 					// there is nothing to reference the torrent!
 					else{
 						indexer  = 'T0'+(j+1);
 					}
-				}
-				// there is nothing to reference the torrent!
-				else{
-					indexer  = 'T0'+(j+1);
-				}
-				
-				// Setting first as actie
-				if (j > 0)
-					is_active = '';
-%> 	
-					  <li class="nav-item">
-					    <a class="nav-link<%= is_active %>" data-toggle="tab" href="#ID<%= i %>_E0<%= j %>"> <%= indexer %></a>
-					  </li>
-<%
-			}
-		}
-%> 
-					</ul>
-					<!-- END Nav tabs -->
 					
-					<!-- Tab content -->
-					<div class="tab-content">
+					// Setting first as actie
+					if (j > 0)
+						is_active = '';
+
+%> 
+				<li class="nav-item">
+					<a class="nav-link<%= is_active %>" data-toggle="tab" href="#ID<%= i %>_E0<%= j %>"> <%= indexer %></a>
+				</li>
 <%
+				} // for j=0; j<torrents.length
+			} // torrents exists
+%> 
+				</ul>
+				<!-- END Nav tabs -->
+				
+				<!-- Tab content -->
+				<div class="tab-content">
+<%
+
 			// Assigning data to each navigatino bar
 			var is_act = ' active';
 			for (let k=0; k<torrents.length; k++){
 				var info = torrents[k]
+				
 				var seeders  = info['seeders'];
 				var leechers = info['leechers'];
 				var views    = info['views'];
 				var size     = info['size'];
 				var t_title  = info['title'];
+				console.log("== t_title2: "+t_title);
 				var magnet   = info['magnet'];
 				var file     = info['file'];
 				var download = info['download'];
 				var galaxy_id= info['galaxy_id'];				
 				var imdb_url = 'http://imdb.com/title/'; //+info['url'];
-
-				// console.dir(info);
-				// console.log("--------------------------------------------------");
-				if (k > 0) is_act = '';				
+				var info_keys= Object.keys(info);
+				
+				// getting data from torrent info
+				if (info_keys.includes('torrent_info') ){
+					var torrent_info = info['torrent_info'];
+					var tinfo_keys   = Object.keys(torrent_info);
+					
+					// getting parsed torrent title
+					if (info_keys.includes('title') ){
+						t_title      = torrent_info['title'];
+					} // torrent info has title
+				} // torrent has torrent_info
+				console.dir(info);
+				console.log("--------------------------------------------------");
+				if (k > 0) is_act = '';
 %> 
-
-					  <div class="tab-pane container<%= is_act %>" id="ID<%= i %>_E0<%= k %>">
-					    <!-- Card content: Name -->
-					    <p class="card-title"> <%= t_title %> </p>
-					    				
-					    <!-- Card content: Genres -->
-					    <p class="card-text"> 
-
+				  <div class="tab-pane container<%= is_act %>" id="ID<%= i %>_E0<%= k %>">
+				    <!-- Card content: Name -->
+				    <p class="card-title"> 
+				    	<div class="border border-light p-3 mb-4">
+						    <div class="badge badge-primary text-wrap" style="max-width: 150px;">
+							  <%= t_title %> 
+							</div>
+						</div>
+					</p>
+						
+				    <!-- Card content: Genres -->
+				    <p class="card-text"> 
 <%
-				
 				if ( imdb_keys.includes('genres') && imdb['genres'] != undefined) {
-				
 			    	genres = imdb['genres'];
 					for (let m=0; m<genres.length; m++){
 %> 
-						
-					    	<span class="badge badge-info" style="border-radius:4px;" title="size">
-					    		<font ><b><%= genres[m] %></b></font>
-					    	</span>
+				    	<span class="badge badge-info" style="border-radius:4px;" title="size">
+				    		<font ><b><%= genres[m] %></b></font>
+				    	</span>
 <%
-					}
-				}
+					} // for m=0 ; m<genres.length;
+				} // genres exists
 %>
-						</p>
-						<!-- END Card content: Genres -->
-						
-					    <p> 
-					    	<span class="badge badge-success" style="border-radius:4px;" title="size">
-					    		<font ><b><%= seeders %></b></font>
-					    	</span>
-					    	/
-					    	<span class="badge badge-danger" style="border-radius:4px;" title="size">
-					    		<font ><b><%= leechers %></b></font>
-					    	</span>
-					    </p>
-						
-					    <!-- Card content: Torrent info -->
-					    <p> 
-					    	<span class="badge badge-secondary" style="border-radius:4px;" title="views">
-					    		<font ><b><%= views %></b></font>
-					    	</span>
-					    	<span class="badge badge-secondary" style="border-radius:4px;" title="size">
-					    		<font ><b><%= size %></b></font>
-					    	</span>
-					    </p>
-					    <hr>
-					    
-						<div class="rounded-bottom mdb-color lighten-3 text-center pt-3">
-						    <ul class="list-unstyled list-inline font-small">
-						      <li class="list-inline-item pr-2">
-						      	<a class="px-2 fa-lg li-ic" href="<%= magnet %>"><span class="glyphicon glyphicon-magnet"></span></a>
-						      </li>
-						      <li class="list-inline-item pr-2">
-						      	<a class="px-2 fa-lg li-ic" href="<%= file %>"><span class="glyphicon glyphicon-floppy-save"></span></a>
-						      </li>
-						      <li class="list-inline-item pr-2">
-						        <a class="px-2 fa-lg li-ic" href="download"><i class="glyphicon glyphicon-cloud-download"></i></a>
-						      </li>
-						      <li class="list-inline-item pr-2">
-						      	<a class="px-2 fa-lg li-ic" href="<%= imdb_url %>"> <i class="fab fa-imdb"></i></a>
-					      	  </li>
-						    </ul>
-						</div>
-					  </div>
+					</p>
+					<!-- END Card content: Genres -->
+					
+				    <p> 
+				    	<span class="badge badge-success" style="border-radius:4px;" title="size">
+				    		<font ><b><%= seeders %></b></font>
+				    	</span>
+				    	/
+				    	<span class="badge badge-danger" style="border-radius:4px;" title="size">
+				    		<font ><b><%= leechers %></b></font>
+				    	</span>
+				    </p>
+					
+				    <!-- Card content: Torrent info -->
+				    <p> 
+				    	<span class="badge badge-secondary" style="border-radius:4px;" title="views">
+				    		<font ><b><%= views %></b></font>
+				    	</span>
+				    	<span class="badge badge-secondary" style="border-radius:4px;" title="size">
+				    		<font ><b><%= size %></b></font>
+				    	</span>
+				    </p>
+				    <hr>
+				    
+					<div class="rounded-bottom mdb-color lighten-3 text-center pt-3">
+					    <ul class="list-unstyled list-inline font-small">
+					      <li class="list-inline-item pr-2">
+					      	<a class="px-2 fa-lg li-ic" href="<%= magnet %>"><span class="glyphicon glyphicon-magnet"></span></a>
+					      </li>
+					      <li class="list-inline-item pr-2">
+					      	<a class="px-2 fa-lg li-ic" href="<%= file %>"><span class="glyphicon glyphicon-floppy-save"></span></a>
+					      </li>
+					      <li class="list-inline-item pr-2">
+					        <a class="px-2 fa-lg li-ic" href="download"><i class="glyphicon glyphicon-cloud-download"></i></a>
+					      </li>
+					      <li class="list-inline-item pr-2">
+					      	<a class="px-2 fa-lg li-ic" href="<%= imdb_url %>"> <i class="fab fa-imdb"></i></a>
+				      	  </li>
+					    </ul>
+					</div>
+				  </div>
 <%
-			}
+			} // k=0;  k<torrents.length
+		} // imdb exists
 %> 
-
 					</div>
 		
         		</div>
@@ -236,10 +251,10 @@
 	    </div>
 	    <!-- Card Wider -->
 <%
-	}
+				console.log("- - - - - - - - - - - - - - - - - - - - - - - - - ");
+	} // for (let i=0; i<latest.length
+
 %>
-	</div>
-	<!--Card column-->
 	
 </div>
 <!-- Container Fluid -->
