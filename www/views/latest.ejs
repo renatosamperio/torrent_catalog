@@ -24,6 +24,19 @@
 		    flex: 1 0 70%;
 		    max-width: 70%;
 		}
+		
+		.xlarger-badge{
+		    font-size: 1.4em;
+		}
+		
+		.larger-badge{
+		    font-size: 1.2em;
+		}
+		
+		.fitter-badge{
+		    font-size: 1.0em;
+		}
+		
 	</style>
 </head>
 <body>
@@ -42,7 +55,8 @@
 		var title       = '';
 		var image_url   = 'img/missing_image.png';
 		var latest_item = latest[i];
-		var item_keys   = Object.keys(latest_item); 
+		var imdb_code   = latest_item["imdb_code"];
+		var item_keys   = Object.keys(latest_item);
 		
 		if ( item_keys.includes('imdb') && latest_item['imdb'] ){
 			var imdb      = latest_item['imdb'];
@@ -51,7 +65,7 @@
 				title = imdb['title'];
 			}
 			
-			if ( imdb_keys.includes('image') && imdb['image'] != undefined) {
+			if ( imdb_keys.includes('image') ) {
 				image_url = imdb['image']['url'];
 			}
 
@@ -60,14 +74,14 @@
 			}
 
 %>
-
 	    <!-- Card Wider -->
-		<div class="card card-cascade wider reverse bg-light mb-3" style="max-width: 22rem;">
+		<div class="col-auto mb-3">
+		<div class="card card-cascade wider reverse bg-light mb-3" style="max-width: 35rem;">
     	
 			<!-- Card header: Title -->
 			<div class="card-header" role="tab" id="headingOne1">
 				<a data-toggle="collapse" data-parent="#accordionEx" href="#collapseOne<%= i+1 %>" aria-expanded="true" aria-controls="collapseOne<%= i+1 %>">
-					<h5 class="mb-1"><%= title %></h5>
+					<h2 style="text-align:center" class="mb-1"><%= title %></h5>
 				</a>
 			</div>
 	
@@ -152,7 +166,7 @@
 				var views    = info['views'];
 				var size     = info['size'];
 				var t_title  = info['title'];
-				console.log("== t_title2: "+t_title);
+				// console.log("== t_title2: "+t_title);
 				var magnet   = info['magnet'];
 				var file     = info['file'];
 				var download = info['download'];
@@ -170,18 +184,16 @@
 						t_title      = torrent_info['title'];
 					} // torrent info has title
 				} // torrent has torrent_info
-				console.dir(info);
-				console.log("--------------------------------------------------");
+				// console.dir(info);
+				// console.log("--------------------------------------------------");
 				if (k > 0) is_act = '';
 %> 
 				  <div class="tab-pane container<%= is_act %>" id="ID<%= i %>_E0<%= k %>">
 				    <!-- Card content: Name -->
 				    <p class="card-title"> 
-				    	<div class="border border-light p-3 mb-4">
-						    <div class="badge badge-primary text-wrap" style="max-width: 150px;">
+						    <div class="badge badge-primary text-wrap xlarger-badge" style="max-width: 250px;">
 							  <%= t_title %> 
 							</div>
-						</div>
 					</p>
 						
 				    <!-- Card content: Genres -->
@@ -191,7 +203,7 @@
 			    	genres = imdb['genres'];
 					for (let m=0; m<genres.length; m++){
 %> 
-				    	<span class="badge badge-info" style="border-radius:4px;" title="size">
+				    	<span class="badge badge-secondary fitter-badge" style="border-radius:4px;" title="size">
 				    		<font ><b><%= genres[m] %></b></font>
 				    	</span>
 <%
@@ -202,21 +214,21 @@
 					<!-- END Card content: Genres -->
 					
 				    <p> 
-				    	<span class="badge badge-success" style="border-radius:4px;" title="size">
+				    	<span class="badge badge-pill badge-success larger-badge" style="border-radius:4px;" title="size">
 				    		<font ><b><%= seeders %></b></font>
 				    	</span>
 				    	/
-				    	<span class="badge badge-danger" style="border-radius:4px;" title="size">
+				    	<span class="badge badge-danger larger-badge" style="border-radius:4px;" title="size">
 				    		<font ><b><%= leechers %></b></font>
 				    	</span>
 				    </p>
 					
 				    <!-- Card content: Torrent info -->
 				    <p> 
-				    	<span class="badge badge-secondary" style="border-radius:4px;" title="views">
+				    	<span class="badge badge-warning larger-badge" style="border-radius:4px;" title="views">
 				    		<font ><b><%= views %></b></font>
 				    	</span>
-				    	<span class="badge badge-secondary" style="border-radius:4px;" title="size">
+				    	<span class="badge badge-dark larger-badge" style="border-radius:4px;" title="size">
 				    		<font ><b><%= size %></b></font>
 				    	</span>
 				    </p>
@@ -231,7 +243,13 @@
 					      	<a class="px-2 fa-lg li-ic" href="<%= file %>"><span class="glyphicon glyphicon-floppy-save"></span></a>
 					      </li>
 					      <li class="list-inline-item pr-2">
-					        <a class="px-2 fa-lg li-ic" href="download"><i class="glyphicon glyphicon-cloud-download"></i></a>
+        					<form name="download_<%= i %>" action="download" method = "POST">
+					      		<input type="hidden" name="selected_torrent" value="<%= galaxy_id %>">
+					        	<A class="px-2 fa-lg li-ic" href="#" onclick="javascript: submitform(this)"> 
+					        		<i class="glyphicon glyphicon-cloud-download"></i>
+				        		</A>
+					        </form>
+					           
 					      </li>
 					      <li class="list-inline-item pr-2">
 					      	<a class="px-2 fa-lg li-ic" href="<%= imdb_url %>"> <i class="fab fa-imdb"></i></a>
@@ -239,6 +257,7 @@
 					    </ul>
 					</div>
 				  </div>
+			      <p>
 <%
 			} // k=0;  k<torrents.length
 		} // imdb exists
@@ -249,15 +268,24 @@
 				<!-- END Tab content -->
 
 	    </div>
-	    <!-- Card Wider -->
+	    </div>
+	    <!-- END Card Wider -->
 <%
-				console.log("- - - - - - - - - - - - - - - - - - - - - - - - - ");
+				// console.log("- - - - - - - - - - - - - - - - - - - - - - - - - ");
 	} // for (let i=0; i<latest.length
 
 %>
 	
 </div>
 <!-- Container Fluid -->
+
+<script type="text/javascript">
+function submitform(id)
+{
+console.log("=== ID: "+id);
+ id.parentElement.submit();
+}
+</script>
 
 </body>
 </html> 

@@ -15,7 +15,9 @@
      * 
      * @param {object} NO_NAME - DESCRIPTION.
      */
-    module.torrents = {};
+    module.torrents = {
+		'state': {}
+    };
 
     /**
      * Run all the functions needed to start the app.
@@ -76,12 +78,96 @@
 //        	  console.log(item);
           }
           var latest = { 'latest': latest_torrents };
+          $CA.torrents.state = latest;
           $CA.log.debug('Rendering latest ['+latest_torrents.length+'] torrents');
           res.render('latest', latest);
         });
         return;
     	
     }
-    
+
+    /**
+     * Send message to download torrents
+     * 
+     * @param {object} NO_NAME - DESCRIPTION.
+     */
+    module.torrents.download = function (req, res) {
+        $CA.log.debug('Started Downloading service');
+        var selected = JSON.parse(req.body.selected_torrent);
+    	console.log(req.body);
+    	console.log("-------");
+    	console.log(selected);
+    	console.log("-------");
+
+        // $CA.torrents.latest();
+    	// Rendering latest torrents again
+        var latest = { 'latest': $CA.torrents.state.latest };
+        $CA.log.debug('Rendering from state ['+latest.latest.length+'] torrents');
+		res.render('latest', latest);
+		return;
+    }
+
+    /**
+     * Retrieve latest torrents in DB.
+     * 
+     * @param {object} NO_NAME - DESCRIPTION.
+     */
+    module.torrents.test = function (req, res) {
+		$CA.log.debug('Setting up connection to test DB');
+    	var client = $DB.mongo.connection.client;
+
+        let name       = 'test';
+        let db_name    = 'galaxy';
+        let hrs_back   = 12;
+        let db         = client.db(db_name);
+        let collection = db.collection(name);
+        
+    	// Setting up time of latest torrents
+        let date_latest = new Date();
+    	date_latest.setHours(date_latest.getHours() - hrs_back);
+    	let query = {'last_updated' : { '$gte': date_latest }};
+    	query = {};
+
+    	// Searching items
+        collection.find(query).toArray( function(err, result) {
+          if (err) throw err;
+          $CA.log.debug('+ Got ['+result.length+'] test torrents');
+          var latest_torrents = [];
+          for (let i=0; i<result.length; i++){
+        	  var item = result[i];
+        	  latest_torrents.push(item);
+        	  // console.log(item);
+          }
+          
+          // Setting collected data
+          var latest = { 'latest': latest_torrents };
+          $CA.torrents.state = latest;
+          $CA.log.debug('Rendering latest ['+latest_torrents.length+'] torrents');
+          res.render('test', latest);
+        });
+        return;
+
+    }
+
+    /**
+     * Retrieve latest torrents in DB.
+     * 
+     * @param {object} NO_NAME - DESCRIPTION.
+     */
+    module.torrents.rewrite = function (req, res) {
+        let selected = JSON.parse(req.body.selected_torrent);
+        var galaxy_id= selected['galaxy_id'];
+        $CA.log.debug('Updating torrent ['+selected+']');
+        $ROS.publish('/galaxy_imdb/update_torrent', {'data': galaxy_id});
+        
+    	// Rendering latest torrents again
+        var latest = { 'latest': $CA.torrents.state.latest };
+        $CA.log.debug('Rendering from state ['+latest.latest.length+'] torrents');
+		res.render('test', latest);
+		
+        return;
+
+    }
+
     return module;
 });

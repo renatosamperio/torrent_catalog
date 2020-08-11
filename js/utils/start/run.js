@@ -47,31 +47,64 @@ const rosnodejs = require('rosnodejs');
    	    	$CA.log.error('Missing DB parameters, exiting...');
    	    	rosnodejs.shutdown();
    	 	}
-   	 	
+	   	
    	 	// creating express and http server
         $CA.express_instance = express();
         $CA.server_instance = http.createServer($CA.express_instance);
-
-        // setting usage port
-        $CA.server_instance.listen(catalog.port);
-
     	
         // setting base route
         $CA.express_instance.use('', express.static(catalog.public_path));
-
+        $CA.express_instance.use(express.urlencoded({ extended: true }));
+        $CA.express_instance.use(express.json());
+    	
         // setting view model
     	$CA.express_instance.set('view engine', 'ejs');
     	$CA.express_instance.set('views', 
     			catalog.public_path + '/views');
     	
-    	// Defining service paths
-    	$CA.express_instance.get( '/latest', $CA.torrents.latest);
+    	// Service to display latest torrents
+    	$CA.express_instance.get( 
+    			'/latest', 
+    			$CA.torrents.latest
+		);
+
+    	// Service to download torrent
+    	$CA.express_instance.post( 
+    			'/download',  
+    			$CA.torrents.download
+		);
+
+    	// Service to download torrent
+    	$CA.express_instance.get( 
+    			'/test',  
+    			$CA.torrents.test
+		);
+
+    	// Service to download torrent
+    	$CA.express_instance.post( 
+    			'/rewrite',  
+    			$CA.torrents.rewrite
+		);
     	
         // viewed at http://localhost:3000
-        $CA.express_instance.get('/', function(req, res) {
-            res.sendFile(path.join(catalog.public_path + 'index.html'));
+        $CA.express_instance.get(
+        		'/', 
+        		function(req, res) {
+        			res.sendFile(path.join(catalog.public_path + 'index.html'));
         });
+        
         $CA.log.info('Starting HTTP server in http://localhost:3000');
+        // setting usage port
+        $CA.server = $CA.server_instance.listen(
+        		catalog.port,
+        		'192.168.1.40',
+    			function () {
+		     	   var host = $CA.server.address().address;
+		     	   var port = $CA.server.address().port;
+		
+		     	   $CA.log.info("Listening on http://%s:%s", host, port)
+     	});
+
     };
 
 
