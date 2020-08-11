@@ -92,18 +92,18 @@
      * @param {object} NO_NAME - DESCRIPTION.
      */
     module.torrents.download = function (req, res) {
-        $CA.log.debug('Started Downloading service');
-        var selected = JSON.parse(req.body.selected_torrent);
-    	console.log(req.body);
-    	console.log("-------");
-    	console.log(selected);
-    	console.log("-------");
+        let selected = JSON.parse(req.body.selected_torrent);
+        var magnet = selected['magnet']
+        $CA.log.debug('Starting download of [%s]'%selected['galaxy_id']);
+        var msg = {
+        	'magnet': magnet
+        }
+        $ROS.publish('/yts_finder/torrents_to_download', msg);
 
-        // $CA.torrents.latest();
     	// Rendering latest torrents again
         var latest = { 'latest': $CA.torrents.state.latest };
         $CA.log.debug('Rendering from state ['+latest.latest.length+'] torrents');
-		res.render('latest', latest);
+		res.render('test', latest);
 		return;
     }
 
